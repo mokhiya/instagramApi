@@ -19,3 +19,19 @@ class VerificationModel(models.Model):
         verbose_name = 'Verification Code'
         verbose_name_plural = 'Verification Codes'
         unique_together = (('user', 'code'),)
+
+
+class FollowModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='following')
+    to_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.email} following to {self.to_user.email}'
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Follower'
+        verbose_name_plural = 'Followers'
+        unique_together = (('user', 'to_user'),)
+

@@ -1,8 +1,9 @@
 from datetime import timedelta
 
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from rest_framework.authentication.BaseAuthentication import authenticate
+
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 
@@ -20,6 +21,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             'first_name': {'required': False},
             'last_name': {'required': False},
         }
+
+    def create(self, validated_data):
+        validated_data.pop('confirm_password')
+        return CustomUser.objects.create_user(**validated_data)
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -44,7 +49,8 @@ class VerificationSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try:
-            user_code = VerificationModel.objects.get(email=attrs['email'], code=attrs['code'])
+            user = CustomUser.objects.get(email=attrs['email'])
+            user_code = VerificationModel.objects.get(user=user, code=attrs['code'])
         except VerificationModel.DoesNotExist:
             raise serializers.ValidationError('Gmail or code is not correct')
 
@@ -52,6 +58,8 @@ class VerificationSerializer(serializers.Serializer):
         if user_code.created_at + timedelta(minutes=2) < current_time:
             user_code.delete()
             raise serializers.ValidationError("Code is expired")
+        attrs['user_code'] = user_code
+        return attrs
 
 
 class LoginSerializer(serializers.Serializer):
@@ -73,4 +81,24 @@ class LoginSerializer(serializers.Serializer):
         if not authenticated_user:
             raise serializers.ValidationError('Email or username or password is not correct')
 
+        attrs['user'] = authenticated_user
+        return attrs
+
+
+class ResendCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError('Email is not correct')
+
+        user_code = VerificationModel.objects.filter(user__email=email)
+        if user_code:
+            current_time = timezone.now()
+            if user_code.created_at + timedelta(minutes=2) > current_time:
+                raise serializers.ValidationError("You already have active code")
+        attrs['user_code'] = user
         return attrs

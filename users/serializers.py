@@ -102,3 +102,10 @@ class ResendCodeSerializer(serializers.Serializer):
                 raise serializers.ValidationError("You already have active code")
         attrs['user_code'] = user
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        exclude = ['password', 'groups', 'user_permissions', 'is_superuser']
+        read_only_fields = ['is_staff', 'is_active', 'date_joined', 'last_login']

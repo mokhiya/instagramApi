@@ -2,12 +2,14 @@ import threading
 
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import CustomUser
-from users.serializers import RegisterSerializer, VerificationSerializer, LoginSerializer, ResendCodeSerializer
+from users.serializers import RegisterSerializer, VerificationSerializer, LoginSerializer, ResendCodeSerializer, \
+    UserSerializer
 from users.signals import send_verification_email
 
 
@@ -28,6 +30,7 @@ class RegisterView(generics.CreateAPIView):
 class VerifyEmailView(APIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = VerificationSerializer
+
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -44,9 +47,11 @@ class VerifyEmailView(APIView):
 
         return Response(response, status=status.HTTP_200_OK)
 
+
 class LoginView(APIView):
     serializer_class = LoginSerializer
     response = dict()
+
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -76,3 +81,10 @@ class ResendVerificationEmailView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class ProfileView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+    queryset = CustomUser.objects.all()
+
+    def get_object(self):
+        return self.request.user

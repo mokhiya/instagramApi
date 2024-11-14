@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_email(self, email):
         if not email.endswith('@gmail.com') or email.count('@') != 1:
             raise serializers.ValidationError('Email is not correct')
-
+        return email
 
 class VerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()

@@ -9,4 +9,6 @@ urlpatterns = [
     path('verify/email/', views.VerifyEmailView.as_view(), name='verify-email'),
     path('verify/resend/', views.ResendVerificationEmailView.as_view(), name='verify-resend'),
     path('me/', views.ProfileView.as_view(), name='profile'),
+
+    path('following/', views.FollowingAPIView.as_view(), name='following'),
 ]

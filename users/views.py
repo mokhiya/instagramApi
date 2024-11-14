@@ -7,9 +7,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.models import CustomUser
+from users.models import CustomUser, FollowModel
 from users.serializers import RegisterSerializer, VerificationSerializer, LoginSerializer, ResendCodeSerializer, \
-    UserSerializer
+    UserSerializer, FollowingSerializer
 from users.signals import send_verification_email
 
 
@@ -88,3 +88,28 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class FollowingAPIView(APIView):
+    serializer_class = FollowingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = FollowingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = self.request.user
+        to_user = serializer.validated_data['to_user']
+        following = FollowModel.objects.filter(user=user, to_user=to_user)
+        response = {'success': True}
+
+        if following.exists():
+            following.delete()
+            response['message'] = ' Following has been deleted.'
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+
+        FollowModel.objects.create(user=user, to_user=to_user)
+        response['message'] = 'Following successfully'
+        return Response(response, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        pass

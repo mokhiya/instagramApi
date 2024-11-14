@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 
-from users.models import CustomUser, VerificationModel
+from users.models import CustomUser, VerificationModel, FollowModel
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -42,6 +42,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if not email.endswith('@gmail.com') or email.count('@') != 1:
             raise serializers.ValidationError('Email is not correct')
         return email
+
 
 class VerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -109,3 +110,18 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         exclude = ['password', 'groups', 'user_permissions', 'is_superuser']
         read_only_fields = ['is_staff', 'is_active', 'date_joined', 'last_login']
+
+
+class FollowingSerializer(serializers.ModelSerializer):
+    to_user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+
+    class Meta:
+        model = FollowModel
+        fields = ['id', 'created_at', 'to_user']
+
+    # def validate(self, attrs):
+    #     user = self.context['request'].user
+    #     to_user = attrs.get('to_user')
+    #     if to_user == user:
+    #         raise serializers.ValidationError('You cannot follow yourself')
+    #     return attrs

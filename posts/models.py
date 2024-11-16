@@ -22,6 +22,7 @@ class PostModel(models.Model):
 
 
 class CommentModel(models.Model):
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     post = models.ForeignKey(PostModel, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()

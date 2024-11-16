@@ -67,3 +67,25 @@ class CommentLikeModel(models.Model):
         verbose_name_plural = 'CommentLikes'
         unique_together = (('user', 'comment'),)
 
+
+class HistoryModel(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='history')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    expiration_time = models.DateTimeField()
+
+    VISIBILITY_CHOICES = [
+        ('followers', 'Followers'),
+        ('public', 'Public'),
+        ('private', 'Private'),
+    ]
+
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='followers')
+
+    def __str__(self):
+        return f"{self.user.username}'s post"
+
+    class Meta:
+        ordering = ['timestamp']
+        verbose_name = 'History'
+        verbose_name_plural = 'Histories'

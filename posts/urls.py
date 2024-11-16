@@ -2,13 +2,13 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
 from posts import views
-from posts.views import CommentViewSet
 
 app_name = 'posts'
 
 router = DefaultRouter()
 router.register('posts', views.PostViewSet, basename='posts')
 router.register('comments', views.CommentViewSet, basename='comments')
+router.register(r'history', views.HistoryViewSet)
 
 urlpatterns = [
     path('child/', views.PostChildListApiView.as_view(), name='post-children'),

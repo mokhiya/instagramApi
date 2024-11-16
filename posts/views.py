@@ -5,10 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from posts.models import PostModel, PostLikeModel, CommentModel, CommentLikeModel
+from posts.models import PostModel, PostLikeModel, CommentModel, CommentLikeModel, HistoryModel
 from posts.paginations import PostsPagination
 from posts.permissions import IsOwnerOrReadOnly
-from posts.serializers import PostSerializer, CommentSerializer
+from posts.serializers import PostSerializer, CommentSerializer, HistorySerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -44,7 +44,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrReadOnly, IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        post = serializer.validated_data['post']
+        user = self.request.user
+
+        if post.user == user:
+            raise ValidationError("You cannot comment on your own post.")
+
+        serializer.save(user=user)
 
 
 class PostCommentListAPIView(generics.ListAPIView):
@@ -130,3 +136,12 @@ class PostLikeAPIView(APIView):
             'message': 'Like does not exist.'
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+class HistoryViewSet(viewsets.ModelViewSet):
+    queryset = HistoryModel.objects.all()
+    serializer_class = HistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

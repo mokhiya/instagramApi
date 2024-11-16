@@ -1,7 +1,7 @@
 from rest_framework import serializers, generics, permissions
 from rest_framework.response import Response
 
-from posts.models import PostModel, CommentModel, PostLikeModel, CommentLikeModel
+from posts.models import PostModel, CommentModel, PostLikeModel, CommentLikeModel, HistoryModel
 from posts.paginations import PostsPagination
 
 
@@ -53,3 +53,9 @@ class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLikeModel
         fields = ['id', 'user', 'comment', 'created_at']
+
+
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoryModel
+        fields = ['id', 'user', 'content', 'timestamp', 'expiration_time', 'visibility']
